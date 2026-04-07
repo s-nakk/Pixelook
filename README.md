@@ -1,81 +1,81 @@
 # Pixelook
 
-Multi-device responsive design preview Chrome extension.
+マルチデバイス レスポンシブデザイン プレビュー Chrome拡張
 
-Any webpage can be previewed across multiple device viewports simultaneously, with synchronized scrolling.
+任意のWebページを複数デバイスサイズで同時プレビューし、スクロール同期で一括確認できます。
 
-## Features
+## 機能
 
-- **Multi-viewport preview** — View any URL in multiple device sizes side by side
-- **Scroll sync** — Scroll one viewport and all others follow (percentage-based)
-- **1:1 device widths** — Each iframe renders at the actual CSS pixel width of the device
-- **Category filters** — Toggle Phone / Tablet / Desktop visibility
-- **17 device presets** — iPhone 17, Galaxy S26, Pixel 10, iPad Pro, and more (2026 viewport data)
-- **Custom devices** — Add your own device dimensions
-- **iframe restriction bypass** — Strips `X-Frame-Options` and `Content-Security-Policy` headers for preview tab only (scoped to tab ID)
-- **Dark theme UI**
+- **マルチビューポートプレビュー** — 任意のURLを複数デバイスサイズで横並び表示
+- **スクロール同期** — 1つのビューポートをスクロールすると他も追従（パーセンテージベース）
+- **1:1デバイス幅表示** — 各iframeを実際のCSSピクセル幅で描画
+- **カテゴリフィルター** — スマホ / タブレット / デスクトップ の表示切替
+- **17種のデバイスプリセット** — iPhone 17, Galaxy S26, Pixel 10, iPad Pro など（2026年最新データ）
+- **カスタムデバイス** — 任意のサイズを追加可能
+- **iframe制限の回避** — `X-Frame-Options` / `Content-Security-Policy` ヘッダーをプレビュータブのみで除去（tabIdスコープ）
+- **ダークテーマUI**
 
-## Default Devices
+## デフォルトデバイス
 
-| Device | Width | Height | Category |
-|--------|-------|--------|----------|
-| Galaxy S26 | 360 | 773 | Phone |
-| iPhone 17 | 402 | 874 | Phone |
-| iPhone Air | 420 | 912 | Phone |
-| Pixel 10 Pro XL | 448 | 997 | Phone |
-| iPad Air 11" | 820 | 1180 | Tablet |
-| iPad Pro 13" | 1032 | 1376 | Tablet |
-| Laptop | 1366 | 768 | Desktop |
-| Desktop FHD | 1920 | 1080 | Desktop |
+| デバイス | 幅 | 高さ | カテゴリ |
+|----------|-----|------|----------|
+| Galaxy S26 | 360 | 773 | スマホ |
+| iPhone 17 | 402 | 874 | スマホ |
+| iPhone Air | 420 | 912 | スマホ |
+| Pixel 10 Pro XL | 448 | 997 | スマホ |
+| iPad Air 11" | 820 | 1180 | タブレット |
+| iPad Pro 13" | 1032 | 1376 | タブレット |
+| Laptop | 1366 | 768 | デスクトップ |
+| Desktop FHD | 1920 | 1080 | デスクトップ |
 
-## Install (Developer Mode)
+## インストール（開発者モード）
 
-1. Clone this repository
+1. このリポジトリをクローン
    ```bash
    git clone https://github.com/s-nakk/Pixelook.git
    ```
-2. Open `chrome://extensions` in Chrome
-3. Enable **Developer mode** (top right)
-4. Click **Load unpacked** and select the cloned `Pixelook` directory
-5. Navigate to any website and click the Pixelook icon in the toolbar
+2. Chromeで `chrome://extensions` を開く
+3. 右上の **デベロッパーモード** を有効化
+4. **パッケージ化されていない拡張機能を読み込む** をクリックし、クローンした `Pixelook` ディレクトリを選択
+5. 任意のWebサイトを開いてツールバーのPixelookアイコンをクリック
 
-## Usage
+## 使い方
 
-1. Open any webpage
-2. Click the Pixelook extension icon
-3. A new tab opens with multi-device preview of the current URL
-4. Use the **category filters** (Phone / Tablet / Desktop) to toggle device groups
-5. Toggle **Scroll Sync** to synchronize scrolling across all viewports
-6. Click **+ Device** to manage devices or add custom ones
+1. 任意のWebページを開く
+2. Pixelook拡張アイコンをクリック
+3. 新しいタブにマルチデバイスプレビューが開く
+4. **カテゴリフィルター**（スマホ / タブレット / デスクトップ）でデバイスグループを切替
+5. **同期トグル** でスクロール同期のON/OFF
+6. **+ デバイス** でデバイスの追加・削除・カスタム作成
 
-## How It Works
+## 仕組み
 
-### Header Stripping
+### ヘッダー除去
 
-Many sites set `X-Frame-Options` or `Content-Security-Policy` headers that prevent iframe embedding. Pixelook uses Chrome's `declarativeNetRequest` API to strip these headers, **scoped exclusively to the preview tab** via `tabIds`. Other tabs are completely unaffected. Rules are cleaned up when the preview tab is closed.
+多くのサイトは `X-Frame-Options` や `Content-Security-Policy` ヘッダーでiframe埋め込みを拒否しています。Pixelookは Chrome の `declarativeNetRequest` API を使い、**プレビュータブのみ** (`tabIds` でスコープ) でこれらのヘッダーを除去します。他のタブには一切影響しません。プレビュータブを閉じるとルールも自動削除されます。
 
-### Scroll Sync
+### スクロール同期
 
-A content script is injected into each iframe via `chrome.scripting.executeScript`. It listens for scroll events and posts the scroll percentage to the parent page via `postMessage`. The parent relays the position to all other iframes. A cooldown mechanism prevents feedback loops.
+`chrome.scripting.executeScript` で各iframe内にコンテントスクリプトを注入し、スクロールイベントを検知。スクロール位置をパーセンテージとして `postMessage` で親ページに伝達し、他のiframeに転送します。クールダウン機構でフィードバックループを防止しています。
 
-## Permissions
+## パーミッション
 
-| Permission | Reason |
-|------------|--------|
-| `activeTab` | Get the current tab's URL |
-| `tabs` | Create preview tab, listen for tab close |
-| `scripting` | Inject scroll sync script into iframes |
-| `declarativeNetRequest` | Strip iframe-blocking response headers |
-| `webNavigation` | Detect iframe load completion for script injection |
-| `storage` | Save custom device presets |
-| `<all_urls>` | Required for header stripping and script injection on any domain |
+| パーミッション | 理由 |
+|----------------|------|
+| `activeTab` | 現在のタブのURL取得 |
+| `tabs` | プレビュータブの作成・閉鎖検知 |
+| `scripting` | iframe内へのスクロール同期スクリプト注入 |
+| `declarativeNetRequest` | iframe制限レスポンスヘッダーの除去 |
+| `webNavigation` | iframeの読み込み完了検知（スクリプト注入タイミング） |
+| `storage` | カスタムデバイスプリセットの保存 |
+| `<all_urls>` | 任意ドメインでのヘッダー除去・スクリプト注入に必要 |
 
-## Tech Stack
+## 技術スタック
 
 - Chrome Extension Manifest V3
-- Vanilla JavaScript (no build step, no framework)
-- CSS custom properties for theming
+- Vanilla JavaScript（ビルドステップなし、フレームワークなし）
+- CSSカスタムプロパティによるテーマ管理
 
-## License
+## ライセンス
 
 [MIT](LICENSE)
