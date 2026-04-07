@@ -4,7 +4,9 @@
 
 任意のWebページを複数デバイスサイズで同時プレビューし、スクロール同期で一括確認できます。
 
-![Pixelook Screenshot](screenshot.png)
+## スクリーンショット
+
+![Pixelook プレビュー画面](screenshots/preview.png)
 
 ## 機能
 
