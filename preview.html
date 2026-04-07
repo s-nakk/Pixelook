@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixelook</title>
+  <link rel="stylesheet" href="preview.css">
+</head>
+<body>
+  <header id="toolbar">
+    <div id="toolbar-left">
+      <span id="logo">Pixelook</span>
+    </div>
+    <div id="url-bar-container">
+      <input type="url" id="url-input" placeholder="URLを入力..." spellcheck="false">
+      <button id="url-go" title="読み込み">&#8629;</button>
+    </div>
+    <div id="toolbar-right">
+      <div id="category-filters">
+        <label class="category-filter"><input type="checkbox" value="phone" checked><span>スマホ</span></label>
+        <label class="category-filter"><input type="checkbox" value="tablet" checked><span>タブレット</span></label>
+        <label class="category-filter"><input type="checkbox" value="desktop" checked><span>デスクトップ</span></label>
+      </div>
+      <div class="toolbar-separator"></div>
+      <label id="sync-toggle-label" title="スクロール同期">
+        <input type="checkbox" id="sync-toggle" checked>
+        <span>同期</span>
+      </label>
+      <button id="manage-devices-btn" title="デバイス管理">+ デバイス</button>
+    </div>
+  </header>
+
+  <main id="viewport-grid"></main>
+
+  <!-- デバイス管理モーダル -->
+  <div id="device-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>デバイス管理</h2>
+        <button id="modal-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="device-section">
+          <h3>表示中のデバイス</h3>
+          <div id="active-devices-list" class="device-list"></div>
+        </div>
+        <div class="device-section">
+          <h3>追加可能なデバイス</h3>
+          <div id="available-devices-list" class="device-list"></div>
+        </div>
+        <div class="device-section">
+          <h3>カスタムデバイスを追加</h3>
+          <form id="custom-device-form">
+            <input type="text" id="custom-name" placeholder="デバイス名" required>
+            <input type="number" id="custom-width" placeholder="幅 (px)" min="200" max="3840" required>
+            <input type="number" id="custom-height" placeholder="高さ (px)" min="200" max="3840" required>
+            <select id="custom-category">
+              <option value="phone">スマホ</option>
+              <option value="tablet">タブレット</option>
+              <option value="desktop">デスクトップ</option>
+            </select>
+            <button type="submit">追加</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="devices.js"></script>
+  <script src="preview.js"></script>
+</body>
+</html>

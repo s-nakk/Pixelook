@@ -1,0 +1,538 @@
+:root {
+  --bg-primary: #0e0e12;
+  --bg-secondary: #1a1a24;
+  --bg-card: #1e1e2a;
+  --bg-hover: #2a2a3a;
+  --text-primary: #e8e8ec;
+  --text-secondary: #8888a0;
+  --text-muted: #55556a;
+  --accent: #4a9eff;
+  --accent-hover: #3a8aee;
+  --border: #2a2a3a;
+  --border-light: #363648;
+  --danger: #ff5566;
+  --success: #44cc88;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --toolbar-height: 48px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ===== ツールバー ===== */
+
+#toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--toolbar-height);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 12px;
+  z-index: 100;
+}
+
+#toolbar-left {
+  flex-shrink: 0;
+}
+
+#logo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+#url-bar-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: 600px;
+}
+
+#url-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 6px 12px;
+  outline: none;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+#url-input::placeholder {
+  color: var(--text-muted);
+}
+
+#url-go {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+#url-go:hover {
+  color: var(--accent);
+}
+
+#toolbar-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Category Filters */
+
+#category-filters {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.category-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  user-select: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.category-filter:hover {
+  background: var(--bg-hover);
+}
+
+.category-filter:has(input:checked) {
+  color: var(--text-primary);
+}
+
+.category-filter input {
+  display: none;
+}
+
+.category-filter span::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+  background: var(--text-muted);
+  opacity: 0.3;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.category-filter:has(input:checked) span::before {
+  opacity: 1;
+}
+
+.category-filter:has(input[value="phone"]:checked) span::before {
+  background: var(--accent);
+}
+
+.category-filter:has(input[value="tablet"]:checked) span::before {
+  background: var(--success);
+}
+
+.category-filter:has(input[value="desktop"]:checked) span::before {
+  background: #ffaa44;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+
+/* Sync Toggle */
+
+#sync-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+#sync-toggle {
+  appearance: none;
+  width: 32px;
+  height: 18px;
+  background: var(--border);
+  border-radius: 9px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#sync-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+
+#sync-toggle:checked {
+  background: var(--accent);
+}
+
+#sync-toggle:checked::after {
+  transform: translateX(14px);
+  background: white;
+}
+
+/* Devices Button */
+
+#manage-devices-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+#manage-devices-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ===== ビューポートグリッド ===== */
+
+#viewport-grid {
+  margin-top: var(--toolbar-height);
+  height: calc(100vh - var(--toolbar-height));
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+}
+
+/* スクロールバーのスタイル */
+
+#viewport-grid::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+#viewport-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#viewport-grid::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+#viewport-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
+}
+
+/* ===== デバイスペイン ===== */
+
+.device-pane {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+
+.device-pane:hover {
+  border-color: var(--border-light);
+}
+
+.device-label {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.device-label .device-name {
+  font-weight: 600;
+}
+
+.device-label .device-size {
+  color: var(--text-muted);
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 10px;
+}
+
+.iframe-container {
+  overflow: hidden;
+  position: relative;
+  background: white;
+}
+
+.device-pane iframe {
+  border: none;
+  display: block;
+}
+
+/* ===== モーダル ===== */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 90%;
+  max-width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.modal-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 16px 20px;
+}
+
+.device-section {
+  margin-bottom: 20px;
+}
+
+.device-section:last-child {
+  margin-bottom: 0;
+}
+
+.device-section h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.device-list-item .device-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.device-list-item .device-dims {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+.device-list-item .category-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.category-badge.phone {
+  background: rgba(74, 158, 255, 0.15);
+  color: var(--accent);
+}
+
+.category-badge.tablet {
+  background: rgba(68, 204, 136, 0.15);
+  color: var(--success);
+}
+
+.category-badge.desktop {
+  background: rgba(255, 170, 68, 0.15);
+  color: #ffaa44;
+}
+
+.device-list-item button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.device-list-item button.remove-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.device-list-item button.add-btn:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+/* カスタムデバイスフォーム */
+
+#custom-device-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#custom-device-form input,
+#custom-device-form select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+#custom-device-form input:focus,
+#custom-device-form select:focus {
+  border-color: var(--accent);
+}
+
+#custom-name {
+  flex: 1;
+  min-width: 120px;
+}
+
+#custom-width,
+#custom-height {
+  width: 80px;
+}
+
+#custom-device-form select {
+  width: 90px;
+}
+
+#custom-device-form button[type="submit"] {
+  background: var(--accent);
+  border: none;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#custom-device-form button[type="submit"]:hover {
+  background: var(--accent-hover);
+}
+
+/* 空状態 */
+
+.empty-message {
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 12px;
+  text-align: center;
+}
