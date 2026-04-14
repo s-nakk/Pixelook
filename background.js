@@ -129,6 +129,18 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 });
 
 /**
+ * プレビュータブからのメッセージ処理
+ */
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'capture-tab') {
+    chrome.tabs.captureVisibleTab(null, { format: 'png' })
+      .then((dataUrl) => sendResponse({ dataUrl }))
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
+});
+
+/**
  * iframe読み込み完了時にスクロール同期スクリプトを注入
  */
 chrome.webNavigation.onCompleted.addListener(async (details) => {

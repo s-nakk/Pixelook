@@ -244,8 +244,7 @@ body {
 #viewport-grid {
   margin-top: var(--toolbar-height);
   height: calc(100vh - var(--toolbar-height));
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto;
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
@@ -301,6 +300,13 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.device-label-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .device-label .device-name {
   font-weight: 600;
 }
@@ -309,6 +315,51 @@ body {
   color: var(--text-muted);
   font-family: 'SF Mono', 'Consolas', monospace;
   font-size: 10px;
+}
+
+.device-label-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.device-copy-btn,
+.device-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.device-close-btn {
+  font-size: 14px;
+}
+
+.device-copy-btn {
+  display: flex;
+  align-items: center;
+}
+
+.device-pane:hover .device-copy-btn,
+.device-pane:hover .device-close-btn {
+  opacity: 1;
+}
+
+.device-copy-btn:hover {
+  color: var(--accent);
+}
+
+.device-copy-btn.copied {
+  color: var(--success);
+  opacity: 1;
+}
+
+.device-close-btn:hover {
+  color: var(--danger);
 }
 
 .iframe-container {

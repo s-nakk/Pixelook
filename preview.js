@@ -6,10 +6,6 @@ let currentUrl = '';
 let activeCategories = new Set(['phone', 'tablet', 'desktop']);
 
 const CATEGORY_LABELS = { phone: 'スマホ', tablet: 'タブレット', desktop: 'デスクトップ' };
-const TOOLBAR_HEIGHT = 48;
-const LABEL_HEIGHT = 34;
-const GRID_PADDING = 16;
-const PANE_BORDER = 2;
 
 // ===== 初期化 =====
 
@@ -39,9 +35,11 @@ async function saveActiveDevices() {
 
 // ===== コンテナ高さ計算 =====
 
-/** iframeコンテナの利用可能高さを算出 */
-function getContainerHeight() {
-  return window.innerHeight - TOOLBAR_HEIGHT - GRID_PADDING * 2 - LABEL_HEIGHT - PANE_BORDER;
+/** 表示中デバイスの最大高さを算出 */
+function getMaxDeviceHeight() {
+  const visibleDevices = activeDevices.filter((d) => activeCategories.has(d.category));
+  if (visibleDevices.length === 0) return 0;
+  return Math.max(...visibleDevices.map((d) => d.height));
 }
 
 // ===== デバイスグリッド描画 =====
@@ -65,17 +63,24 @@ function applyCategoryFilter() {
       pane.style.display = activeCategories.has(device.category) ? '' : 'none';
     }
   });
+  updateAllContainerHeights();
+}
+
+/** 全iframeコンテナの高さを表示中デバイスの最大高さに揃える */
+function updateAllContainerHeights() {
+  const h = getMaxDeviceHeight() + 'px';
+  document.querySelectorAll('.iframe-container').forEach((c) => {
+    c.style.height = h;
+  });
 }
 
 /**
  * 1つのデバイスペインを生成
- * iframeは実デバイス幅で1:1表示。高さは画面に収まる分だけ表示
+ * iframeは実デバイスサイズで1:1表示。コンテナは表示中デバイスの最大高さに揃える
  * @param {{ id: string, name: string, width: number, height: number, category: string }} device
  * @returns {HTMLElement}
  */
 function createDevicePane(device) {
-  const containerHeight = getContainerHeight();
-
   const pane = document.createElement('div');
   pane.className = 'device-pane';
   pane.dataset.deviceId = device.id;
@@ -84,20 +89,49 @@ function createDevicePane(device) {
   // ラベル
   const label = document.createElement('div');
   label.className = 'device-label';
+  const labelLeft = document.createElement('div');
+  labelLeft.className = 'device-label-left';
   const nameSpan = document.createElement('span');
   nameSpan.className = 'device-name';
   nameSpan.textContent = device.name;
   const sizeSpan = document.createElement('span');
   sizeSpan.className = 'device-size';
   sizeSpan.textContent = `${device.width} \u00D7 ${device.height}`;
-  label.appendChild(nameSpan);
-  label.appendChild(sizeSpan);
+  labelLeft.appendChild(nameSpan);
+  labelLeft.appendChild(sizeSpan);
 
-  // iframeコンテナ - 高さは画面に収まる分まで
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'device-copy-btn';
+  copyBtn.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1"/><path d="M5 11H3a1 1 0 01-1-1V3a1 1 0 011-1h7a1 1 0 011 1v2"/></svg>';
+  copyBtn.title = 'スクリーンショットをコピー';
+  copyBtn.addEventListener('click', () => {
+    captureDeviceScreenshot(pane, copyBtn);
+  });
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'device-close-btn';
+  closeBtn.textContent = '\u00D7';
+  closeBtn.title = '非表示';
+  closeBtn.addEventListener('click', () => {
+    pane.remove();
+    activeDevices = activeDevices.filter((d) => d.id !== device.id);
+    saveActiveDevices();
+    updateAllContainerHeights();
+  });
+
+  const labelRight = document.createElement('div');
+  labelRight.className = 'device-label-right';
+  labelRight.appendChild(copyBtn);
+  labelRight.appendChild(closeBtn);
+
+  label.appendChild(labelLeft);
+  label.appendChild(labelRight);
+
+  // iframeコンテナ - 表示中デバイスの最大高さに揃える
   const container = document.createElement('div');
   container.className = 'iframe-container';
   container.style.width = device.width + 'px';
-  container.style.height = containerHeight + 'px';
+  container.style.height = getMaxDeviceHeight() + 'px';
 
   // iframe - 実デバイスサイズで1:1表示（スケーリングなし）
   const iframe = document.createElement('iframe');
@@ -116,11 +150,64 @@ function createDevicePane(device) {
   return pane;
 }
 
+// ===== スクリーンショットキャプチャ =====
+
+/**
+ * デバイスペインのiframe領域をキャプチャしてクリップボードにコピー
+ * @param {HTMLElement} pane - デバイスペイン要素
+ * @param {HTMLElement} btn - コピーボタン（フィードバック表示用）
+ */
+async function captureDeviceScreenshot(pane, btn) {
+  try {
+    pane.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+    await new Promise((r) => setTimeout(r, 100));
+
+    const response = await chrome.runtime.sendMessage({ type: 'capture-tab' });
+    if (response.error) throw new Error(response.error);
+
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = response.dataUrl;
+    });
+
+    const iframeEl = pane.querySelector('iframe');
+    const rect = iframeEl.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    // 可視領域にクランプ
+    const x = Math.max(0, rect.left) * dpr;
+    const y = Math.max(0, rect.top) * dpr;
+    const w = (Math.min(rect.right, window.innerWidth) * dpr) - x;
+    const h = (Math.min(rect.bottom, window.innerHeight) * dpr) - y;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, x, y, w, h, 0, 0, w, h);
+
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+
+    showCopyFeedback(btn);
+  } catch (err) {
+    console.error('スクリーンショットキャプチャ失敗:', err);
+  }
+}
+
+/** コピー成功のフィードバック表示 */
+function showCopyFeedback(btn) {
+  btn.classList.add('copied');
+  setTimeout(() => btn.classList.remove('copied'), 1500);
+}
+
 // ===== URL操作 =====
 
 /** iframeに読み込み可能なURLか判定 */
 function isLoadableUrl(url) {
-  return /^https?:\/\//.test(url);
+  return /^(https?|file):\/\//.test(url);
 }
 
 /** 全iframeを指定URLに遷移 */
@@ -234,6 +321,7 @@ function createDeviceListItem(device, action) {
       grid.appendChild(pane);
     }
     saveActiveDevices();
+    updateAllContainerHeights();
     renderModalDeviceLists();
   });
 
@@ -259,6 +347,7 @@ function addCustomDevice(name, width, height, category) {
   saveActiveDevices();
   renderModalDeviceLists();
   document.getElementById('viewport-grid').appendChild(createDevicePane(device));
+  updateAllContainerHeights();
 }
 
 // ===== イベントリスナー =====
@@ -317,13 +406,6 @@ function setupEventListeners() {
     if (e.key === 'Escape') closeDeviceModal();
   });
 
-  // ウィンドウリサイズ時にコンテナ高さを更新
-  window.addEventListener('resize', () => {
-    const containerHeight = getContainerHeight();
-    document.querySelectorAll('.iframe-container').forEach((container) => {
-      container.style.height = containerHeight + 'px';
-    });
-  });
 }
 
 // ===== カスタムデバイスの復元 =====

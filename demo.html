@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee & Craft - Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #2d5016;
+      --primary-light: #4a7c28;
+      --accent: #d4a847;
+      --bg: #faf8f5;
+      --bg-card: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --border: #e8e4de;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ===== Header ===== */
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--accent); }
+
+    nav {
+      display: flex;
+      gap: 20px;
+      font-size: 14px;
+    }
+
+    nav a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    nav a:hover { color: white; }
+
+    @media (max-width: 600px) {
+      nav { display: none; }
+      .logo { font-size: 16px; }
+    }
+
+    /* ===== Hero ===== */
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(24px, 5vw, 48px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      font-size: clamp(14px, 2.5vw, 18px);
+      opacity: 0.85;
+      max-width: 500px;
+      margin: 0 auto 24px;
+    }
+
+    .hero-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 32px;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .hero-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    /* ===== Section ===== */
+
+    section {
+      padding: 48px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    /* ===== Menu Grid ===== */
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    @media (max-width: 520px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .menu-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .menu-card:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .menu-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      background: var(--border);
+    }
+
+    .menu-body {
+      padding: 16px;
+    }
+
+    .menu-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .menu-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .menu-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .menu-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .menu-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(45,80,22,0.1);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 100px;
+    }
+
+    /* ===== Features ===== */
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    @media (max-width: 520px) {
+      .features {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .feature {
+      text-align: center;
+      padding: 24px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 12px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+    }
+
+    .feature h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .feature p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ===== Info Bar ===== */
+
+    .info-bar {
+      background: var(--primary);
+      color: white;
+      padding: 32px 20px;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    .info-stat {
+      min-width: 100px;
+    }
+
+    .info-stat .num {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .info-stat .label {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    /* ===== Reviews ===== */
+
+    .reviews {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .review-card {
+      flex-shrink: 0;
+      width: 260px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .review-stars {
+      color: var(--accent);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .review-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .review-author {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ===== CTA ===== */
+
+    .cta {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      text-align: center;
+      padding: 48px 20px;
+    }
+
+    .cta h2 {
+      font-size: clamp(20px, 4vw, 32px);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .cta p {
+      opacity: 0.8;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    /* ===== Footer ===== */
+
+    footer {
+      background: #1a1a1a;
+      color: rgba(255,255,255,0.5);
+      padding: 24px 20px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    footer a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Coffee <span>&</span> Craft</div>
+    <nav>
+      <a href="#">メニュー</a>
+      <a href="#">こだわり</a>
+      <a href="#">店舗情報</a>
+      <a href="#">予約</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>一杯の、特別な時間</h1>
+    <p>厳選された豆を丁寧に焙煎。毎日を少しだけ豊かにするスペシャルティコーヒーをお届けします。</p>
+    <a href="#" class="hero-btn">メニューを見る</a>
+  </div>
+
+  <section>
+    <h2 class="section-title">人気メニュー</h2>
+    <p class="section-subtitle">バリスタが自信を持っておすすめする一杯</p>
+    <div class="menu-grid">
+      <div class="menu-card">
+        <svg class="menu-img" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="300" fill="#3d2b1f"/>
+          <circle cx="200" cy="150" r="80" fill="#5a3e2b"/>
+          <circle cx="200" cy="150" r="65" fill="#8b6f47"/>
+          <path d="M160 140 Q180 120 200 140 Q220 120 240 140" fill="none" stroke="white" stroke-width="3" opacity="0.4"/>
+          <rect x="260" y="110" width="15" height="80" rx="7" fill="#5a3e2b"/>
+        </svg>
+        <div class="menu-body">
+          <div class="menu-name">エチオピア シングルオリジン</div>
+          <div class="menu-desc">フルーティーな酸味とフローラルな香り。ライトローストで豆本来の個性を引き出しました。</div>
+          <div class="menu-footer">
+            <span class="menu-price">¥580</span>
+            <span class="menu-tag">人気 No.1</span>
+          </div>
+        </div>
+      </div>
+      <div class="menu-card">
+        <svg class="menu-img" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="300" fill="#f5e6d3"/>
+          <rect x="140" y="80" width="120" height="160" rx="8" fill="white" stroke="#ddd" stroke-width="2"/>
+          <rect x="150" y="90" width="100" height="100" rx="4" fill="#c4956a"/>
+          <circle cx="200" cy="140" r="30" fill="#e8d5c0"/>
+          <path d="M185 135 Q200 115 215 135" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>
+        </svg>
+        <div class="menu-body">
+          <div class="menu-name">抹茶カフェラテ</div>
+          <div class="menu-desc">京都産の上質な抹茶とエスプレッソの出会い。クリーミーな泡と共に。</div>
+          <div class="menu-footer">
+            <span class="menu-price">¥650</span>
+            <span class="menu-tag">季節限定</span>
+          </div>
+        </div>
+      </div>
+      <div class="menu-card">
+        <svg class="menu-img" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="300" fill="#2c1810"/>
+          <ellipse cx="200" cy="170" rx="90" ry="50" fill="#1a0e08"/>
+          <ellipse cx="200" cy="160" rx="85" ry="45" fill="#4a2c1a"/>
+          <circle cx="180" cy="155" r="8" fill="#5a3825" opacity="0.6"/>
+          <circle cx="210" cy="150" r="6" fill="#5a3825" opacity="0.5"/>
+          <circle cx="195" cy="165" r="5" fill="#5a3825" opacity="0.4"/>
+        </svg>
+        <div class="menu-body">
+          <div class="menu-name">ダブルエスプレッソ</div>
+          <div class="menu-desc">深煎りのブラジル豆を使った力強い一杯。チョコレートのような余韻。</div>
+          <div class="menu-footer">
+            <span class="menu-price">¥480</span>
+            <span class="menu-tag">定番</span>
+          </div>
+        </div>
+      </div>
+      <div class="menu-card">
+        <svg class="menu-img" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="300" fill="#fdf6e3"/>
+          <rect x="160" y="60" width="80" height="180" rx="10" fill="#e8dcc8"/>
+          <rect x="165" y="80" width="70" height="120" rx="4" fill="#c4a46a"/>
+          <circle cx="200" cy="140" r="25" fill="#f5e6d3" opacity="0.5"/>
+          <rect x="170" y="210" width="60" height="8" rx="4" fill="#d4c4a0"/>
+        </svg>
+        <div class="menu-body">
+          <div class="menu-name">アイスカフェモカ</div>
+          <div class="menu-desc">ベルギーチョコとエスプレッソのリッチな組み合わせ。暑い日にぴったり。</div>
+          <div class="menu-footer">
+            <span class="menu-price">¥620</span>
+            <span class="menu-tag">夏のおすすめ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="info-bar">
+    <div class="info-stat">
+      <div class="num">12</div>
+      <div class="label">産地の豆</div>
+    </div>
+    <div class="info-stat">
+      <div class="num">3,200+</div>
+      <div class="label">月間来客数</div>
+    </div>
+    <div class="info-stat">
+      <div class="num">4.8</div>
+      <div class="label">平均評価</div>
+    </div>
+    <div class="info-stat">
+      <div class="num">8</div>
+      <div class="label">年の歴史</div>
+    </div>
+  </div>
+
+  <section>
+    <h2 class="section-title">私たちのこだわり</h2>
+    <p class="section-subtitle">すべての工程に、想いを込めて</p>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">&#9749;</div>
+        <h3>自家焙煎</h3>
+        <p>毎朝店内で焙煎。鮮度が違います</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#127793;</div>
+        <h3>産地直送</h3>
+        <p>農園と直接取引で品質を確保</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#128167;</div>
+        <h3>軟水抽出</h3>
+        <p>日本の水に合わせた抽出レシピ</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">&#9829;</div>
+        <h3>ハンドドリップ</h3>
+        <p>一杯ずつ丁寧にお淹れします</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">お客様の声</h2>
+    <p class="section-subtitle">いただいたレビューの一部をご紹介</p>
+    <div class="reviews">
+      <div class="review-card">
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <div class="review-text">エチオピアのシングルオリジンが最高でした。フルーティーで飲みやすく、毎週通っています。</div>
+        <div class="review-author">田中 美咲</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <div class="review-text">店内の雰囲気も素敵で、リモートワークにも最適。Wi-Fiも速くて助かります。</div>
+        <div class="review-author">佐藤 健太</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+        <div class="review-text">抹茶ラテがお気に入り。季節限定メニューがいつも楽しみです。</div>
+        <div class="review-author">山本 あかり</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <div class="review-text">豆の産地や焙煎度合いを丁寧に説明してくれるので、コーヒーの知識が増えました。</div>
+        <div class="review-author">鈴木 大輔</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta">
+    <h2>あなただけの一杯を見つけに</h2>
+    <p>初めてのお客様には、お好みに合わせたおすすめをバリスタがご提案します。</p>
+    <a href="#" class="hero-btn">店舗情報を見る</a>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Coffee & Craft. All rights reserved.</p>
+    <p style="margin-top: 8px;">
+      <a href="#">プライバシーポリシー</a> &middot;
+      <a href="#">利用規約</a> &middot;
+      <a href="#">お問い合わせ</a>
+    </p>
+  </footer>
+
+</body>
+</html>
