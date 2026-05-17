@@ -33,15 +33,6 @@ async function saveActiveDevices() {
   await chrome.storage.local.set({ activeDevices });
 }
 
-// ===== コンテナ高さ計算 =====
-
-/** 表示中デバイスの最大高さを算出 */
-function getMaxDeviceHeight() {
-  const visibleDevices = activeDevices.filter((d) => activeCategories.has(d.category));
-  if (visibleDevices.length === 0) return 0;
-  return Math.max(...visibleDevices.map((d) => d.height));
-}
-
 // ===== デバイスグリッド描画 =====
 
 /** 全デバイスペインを描画 */
@@ -63,20 +54,11 @@ function applyCategoryFilter() {
       pane.style.display = activeCategories.has(device.category) ? '' : 'none';
     }
   });
-  updateAllContainerHeights();
-}
-
-/** 全iframeコンテナの高さを表示中デバイスの最大高さに揃える */
-function updateAllContainerHeights() {
-  const h = getMaxDeviceHeight() + 'px';
-  document.querySelectorAll('.iframe-container').forEach((c) => {
-    c.style.height = h;
-  });
 }
 
 /**
  * 1つのデバイスペインを生成
- * iframeは実デバイスサイズで1:1表示。コンテナは表示中デバイスの最大高さに揃える
+ * iframeとコンテナは実デバイスサイズで1:1表示
  * @param {{ id: string, name: string, width: number, height: number, category: string }} device
  * @returns {HTMLElement}
  */
@@ -116,7 +98,6 @@ function createDevicePane(device) {
     pane.remove();
     activeDevices = activeDevices.filter((d) => d.id !== device.id);
     saveActiveDevices();
-    updateAllContainerHeights();
   });
 
   const labelRight = document.createElement('div');
@@ -127,11 +108,11 @@ function createDevicePane(device) {
   label.appendChild(labelLeft);
   label.appendChild(labelRight);
 
-  // iframeコンテナ - 表示中デバイスの最大高さに揃える
+  // iframeコンテナ - 実デバイスサイズで1:1表示
   const container = document.createElement('div');
   container.className = 'iframe-container';
   container.style.width = device.width + 'px';
-  container.style.height = getMaxDeviceHeight() + 'px';
+  container.style.height = device.height + 'px';
 
   // iframe - 実デバイスサイズで1:1表示（スケーリングなし）
   const iframe = document.createElement('iframe');
@@ -321,7 +302,6 @@ function createDeviceListItem(device, action) {
       grid.appendChild(pane);
     }
     saveActiveDevices();
-    updateAllContainerHeights();
     renderModalDeviceLists();
   });
 
@@ -346,8 +326,9 @@ function addCustomDevice(name, width, height, category) {
 
   saveActiveDevices();
   renderModalDeviceLists();
-  document.getElementById('viewport-grid').appendChild(createDevicePane(device));
-  updateAllContainerHeights();
+  const pane = createDevicePane(device);
+  if (!activeCategories.has(device.category)) pane.style.display = 'none';
+  document.getElementById('viewport-grid').appendChild(pane);
 }
 
 // ===== イベントリスナー =====
