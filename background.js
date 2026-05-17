@@ -64,41 +64,79 @@ async function removeHeaderRules(tabId) {
   }
 }
 
-// ===== スクロール同期スクリプト注入 =====
+// ===== iframe注入スクリプト =====
 
-/** iframe内に注入するスクロール同期スクリプト */
-function scrollSyncScript() {
+/**
+ * iframe内に注入する同期スクリプト
+ * - スクロール同期（scrollPercentベース）
+ * - URL変化検知（location.href ポーリング + popstate/hashchange）
+ */
+function pixelookInjectedScript() {
   // 多重注入を防止
-  if (window.__multiviewerScrollSync) return;
-  window.__multiviewerScrollSync = true;
+  if (window.__pixelookInjected) return;
+  window.__pixelookInjected = true;
 
-  let syncCooldownUntil = 0;
-  let scrollTimeout = null;
+  // ===== スクロール同期 =====
+
+  let pendingFrame = false;
+  let suppressUntil = 0;
+
+  function getScrollRoot() {
+    return document.scrollingElement || document.documentElement;
+  }
 
   window.addEventListener('scroll', () => {
-    // クールダウン中はスクロールイベントを無視（フィードバックループ防止）
-    if (Date.now() < syncCooldownUntil) return;
-    if (scrollTimeout) return;
-
-    scrollTimeout = setTimeout(() => {
-      scrollTimeout = null;
-      if (Date.now() < syncCooldownUntil) return;
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = scrollHeight > 0 ? window.scrollY / scrollHeight : 0;
+    // 自分が scrollTo された直後はイベントを無視（フィードバックループ防止）
+    if (Date.now() < suppressUntil) return;
+    if (pendingFrame) return;
+    pendingFrame = true;
+    requestAnimationFrame(() => {
+      pendingFrame = false;
+      if (Date.now() < suppressUntil) return;
+      const root = getScrollRoot();
+      const max = root.scrollHeight - root.clientHeight;
+      const scrollPercent = max > 0 ? root.scrollTop / max : 0;
       window.parent.postMessage({
-        type: 'multiviewer-scroll',
+        type: 'pixelook-scroll',
         scrollPercent,
       }, '*');
-    }, 50);
-  });
+    });
+  }, { passive: true });
 
   window.addEventListener('message', (event) => {
-    if (event.data?.type !== 'multiviewer-set-scroll') return;
-    // scrollTo後のスクロールイベントを150ms間抑制
-    syncCooldownUntil = Date.now() + 150;
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-    window.scrollTo(0, scrollHeight * event.data.scrollPercent);
+    if (event.data?.type !== 'pixelook-set-scroll') return;
+    // scrollTo後のスクロールイベントを200ms間抑制
+    suppressUntil = Date.now() + 200;
+    const root = getScrollRoot();
+    // overflow:hidden等で clientHeight > scrollHeight になり負値になるケースをクランプ
+    const max = Math.max(0, root.scrollHeight - root.clientHeight);
+    root.scrollTop = max * event.data.scrollPercent;
   });
+
+  // ===== URL変化検知 =====
+
+  let lastUrl = location.href;
+
+  function reportUrl() {
+    window.parent.postMessage({
+      type: 'pixelook-url',
+      url: lastUrl,
+    }, '*');
+  }
+
+  function checkUrlChanged() {
+    if (location.href === lastUrl) return;
+    lastUrl = location.href;
+    reportUrl();
+  }
+
+  // 初期URL報告（親のURLバー同期 & ループ抑制の基準値設定）
+  reportUrl();
+
+  // SPA pushState/replaceState はイベントが飛ばないので軽量ポーリング
+  setInterval(checkUrlChanged, 200);
+  window.addEventListener('popstate', checkUrlChanged);
+  window.addEventListener('hashchange', checkUrlChanged);
 }
 
 // ===== イベントリスナー =====
@@ -141,7 +179,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /**
- * iframe読み込み完了時にスクロール同期スクリプトを注入
+ * iframe読み込み完了時に同期スクリプトを注入
  */
 chrome.webNavigation.onCompleted.addListener(async (details) => {
   // メインフレームは無視、プレビュータブのサブフレームのみ対象
@@ -151,10 +189,10 @@ chrome.webNavigation.onCompleted.addListener(async (details) => {
   try {
     await chrome.scripting.executeScript({
       target: { tabId: details.tabId, frameIds: [details.frameId] },
-      func: scrollSyncScript,
+      func: pixelookInjectedScript,
     });
   } catch (e) {
     // chrome://, edge://, Web Store等は注入不可（想定内）
-    console.warn('スクロール同期スクリプト注入失敗:', details.url, e);
+    console.warn('同期スクリプト注入失敗:', details.url, e);
   }
 });

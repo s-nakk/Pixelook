@@ -200,33 +200,63 @@ function navigateAll(url) {
   });
 }
 
-// ===== スクロール同期 =====
+// ===== iframe からのメッセージ処理（スクロール / URL 同期） =====
 
 /**
- * iframeからのスクロールメッセージを他のiframeに転送
+ * iframeからのメッセージを処理し、他iframeへ転送する
  * @param {MessageEvent} event
  */
-function handleScrollMessage(event) {
-  if (!syncEnabled) return;
-  if (event.data?.type !== 'multiviewer-scroll') return;
+function handleIframeMessage(event) {
   if (!event.source) return;
+  if (typeof event.data !== 'object' || event.data === null) return;
 
-  const iframes = document.querySelectorAll('#viewport-grid iframe');
+  const iframes = Array.from(document.querySelectorAll('#viewport-grid iframe'));
+  const sourceIframe = iframes.find((iframe) => iframe.contentWindow === event.source);
+  if (!sourceIframe) return;
 
-  // 送信元が自拡張のiframeであることを検証
-  const isFromOurIframe = Array.from(iframes).some(
-    (iframe) => iframe.contentWindow === event.source
-  );
-  if (!isFromOurIframe) return;
+  if (event.data.type === 'pixelook-scroll') {
+    handleScrollSync(sourceIframe, iframes, event.data.scrollPercent);
+  } else if (event.data.type === 'pixelook-url') {
+    handleUrlSync(sourceIframe, iframes, event.data.url);
+  }
+}
 
-  // 送信元以外のiframeにスクロール位置を転送
+/**
+ * 送信元以外のiframeにスクロール位置を転送
+ * @param {HTMLIFrameElement} sourceIframe
+ * @param {HTMLIFrameElement[]} iframes
+ * @param {number} scrollPercent
+ */
+function handleScrollSync(sourceIframe, iframes, scrollPercent) {
+  if (!syncEnabled) return;
   for (const iframe of iframes) {
-    if (iframe.contentWindow !== event.source) {
-      iframe.contentWindow.postMessage({
-        type: 'multiviewer-set-scroll',
-        scrollPercent: event.data.scrollPercent,
-      }, '*');
-    }
+    if (iframe === sourceIframe) continue;
+    iframe.contentWindow.postMessage({
+      type: 'pixelook-set-scroll',
+      scrollPercent,
+    }, '*');
+  }
+}
+
+/**
+ * iframe 内の URL 変化を URL バー & 他 iframe に反映
+ * @param {HTMLIFrameElement} sourceIframe
+ * @param {HTMLIFrameElement[]} iframes
+ * @param {string} url
+ */
+function handleUrlSync(sourceIframe, iframes, url) {
+  if (!isLoadableUrl(url)) return;
+  if (url === currentUrl) return;
+
+  currentUrl = url;
+  document.getElementById('url-input').value = url;
+
+  // ループ防止は handleUrlSync 冒頭の url === currentUrl で担保済みなので、
+  // ここでは iframe.src との比較はしない（getter の URL 正規化と location.href の差で
+  // 不一致を誤判定し、結局リロードしてしまうケースを避ける）
+  for (const iframe of iframes) {
+    if (iframe === sourceIframe) continue;
+    iframe.src = url;
   }
 }
 
@@ -348,7 +378,7 @@ function setupEventListeners() {
     syncEnabled = e.target.checked;
   });
 
-  window.addEventListener('message', handleScrollMessage);
+  window.addEventListener('message', handleIframeMessage);
 
   // カテゴリフィルター
   document.querySelectorAll('#category-filters input').forEach((checkbox) => {
