@@ -137,6 +137,26 @@ function pixelookInjectedScript() {
   setInterval(checkUrlChanged, 200);
   window.addEventListener('popstate', checkUrlChanged);
   window.addEventListener('hashchange', checkUrlChanged);
+
+  // ===== リンククリックの先取り（全ペイン同時遷移用） =====
+
+  // 自前で遷移する前に親にURLを投げ、親が全iframeを同時にsrc=新URLに揃える
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented) return;
+    if (e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+    const anchor = e.target.closest && e.target.closest('a');
+    if (!anchor || !anchor.href) return;
+    if (anchor.target && anchor.target !== '_self') return;
+    if (anchor.href.startsWith('javascript:')) return;
+
+    e.preventDefault();
+    window.parent.postMessage({
+      type: 'pixelook-navigate',
+      url: anchor.href,
+    }, '*');
+  }, true);
 }
 
 // ===== イベントリスナー =====

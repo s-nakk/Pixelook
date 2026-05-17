@@ -218,6 +218,8 @@ function handleIframeMessage(event) {
     handleScrollSync(sourceIframe, iframes, event.data.scrollPercent);
   } else if (event.data.type === 'pixelook-url') {
     handleUrlSync(sourceIframe, iframes, event.data.url);
+  } else if (event.data.type === 'pixelook-navigate') {
+    handleNavigateRequest(iframes, event.data.url);
   }
 }
 
@@ -256,6 +258,23 @@ function handleUrlSync(sourceIframe, iframes, url) {
   // 不一致を誤判定し、結局リロードしてしまうケースを避ける）
   for (const iframe of iframes) {
     if (iframe === sourceIframe) continue;
+    iframe.src = url;
+  }
+}
+
+/**
+ * iframe内のリンククリックを先取りし、全ペインを同時に遷移させる
+ * @param {HTMLIFrameElement[]} iframes
+ * @param {string} url
+ */
+function handleNavigateRequest(iframes, url) {
+  if (!isLoadableUrl(url)) return;
+
+  currentUrl = url;
+  document.getElementById('url-input').value = url;
+
+  // ソース含む全iframeを同時に書き換え、揃ったタイミングで遷移開始
+  for (const iframe of iframes) {
     iframe.src = url;
   }
 }
